@@ -2,18 +2,91 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import abi from '../dapps/contracts/abi.json'
 
-import { useAddress, useDisconnect, useMetamask } from "@thirdweb-dev/react";
+import { useAddress, useDisconnect, useMetamask, useSigner } from "@thirdweb-dev/react";
+import { ethers } from 'ethers'
+
+const contractAddressMumbai = '0x2bC9E6A36a8B98B02Cc4C63E3863Bc7ac3d01429';
+
+const batterContractAddress = '0x2bC9E6A36a8B98B02Cc4C63E3863Bc7ac3d01429'
+
+type GameBoard = {
+  totalScore: number,
+  bases: number,
+  outs: number,
+}
 
 const Home: NextPage = () => {
   const connectWithMetamask = useMetamask();
   const disconnect = useDisconnect()
-  const address = useAddress();
+  const address = useAddress()
+  const signer = useSigner()
 
+  const [contractReady, setContractReady] = useState<boolean>(false)
+  const [contract, setContract] = useState<ethers.Contract>()
+  const [provider, setProvider] = useState<ethers.providers.BaseProvider>()
+
+  const [boardReady, setBoardReady] = useState<boolean>(false)
+  const [board, setBoard] = useState<GameBoard>({totalScore: 0, bases: 0, outs: 0})
+
+  //  fetch game board
+  useEffect(() => {
+    const p = ethers.getDefaultProvider('https://rpc-mumbai.maticvigil.com/')
+    setProvider(p)
+
+    p.getNetwork().then(x => console.log('network', x.chainId))
+    p.getBlockNumber().then(x => console.log('height', x.toString()))
+  },[])
+
+  useEffect(() => {
+    if(!signer) {
+      return
+    }
+    const contract = new ethers.Contract(contractAddressMumbai, abi, signer);
+    const fetchCurrentGame = async () => {
+      const totalScore = await contract.totalScore()
+      const bases = await contract.bases()
+      const outs = await contract.outs()
+      console.log('score', totalScore)
+      console.log('bases', bases)
+      console.log('outs', outs)
+      setContract(contract)
+      setContractReady(true)
+    }
+    fetchCurrentGame()
+  }, [signer])
+
+  // fetch address data
   useEffect(() => {
     console.log('address:', address)
   }, [address])
+
+  useEffect(() => {
+    signer?.getBalance().then(x => console.log('signer:', x?.toString()))
+  }, [signer])
+
+  const trigger = (address: string, tokenId: number) => {
+    if(!contract) {
+      return
+    }
+    const inner = async () => {
+      const result = await contract.trigger(address, tokenId)
+      return result
+    }
+    inner().then(x => console.log(x))
+  }
+  const reveal = () => {
+    if(!contract) {
+      return
+    }
+    const inner = async () => {
+      const result = await contract.reveal()
+      return result
+    }
+    inner().then(x => console.log(x))
+  }
 
   return (
     <div className={styles.container}>
@@ -25,6 +98,8 @@ const Home: NextPage = () => {
 
       <p>address: {address ?? 'not connected'}</p>
       <button onClick={() => !address ? connectWithMetamask() : disconnect()}>{ !address ? "Connect Wallet" : "Disconnect"}</button>
+      <button onClick={() => trigger(batterContractAddress, 1)}>trigger</button>
+      <button onClick={() => reveal()}>reveal</button>
 
       <footer className={styles.footer}>
         <a

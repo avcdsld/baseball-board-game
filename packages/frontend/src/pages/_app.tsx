@@ -5,7 +5,10 @@ import { ChainId, ThirdwebProvider } from "@thirdweb-dev/react";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <ThirdwebProvider desiredChainId={ChainId.Mumbai} supportedChains={[ChainId.Mumbai, ChainId.Rinkeby]}>
+    <ThirdwebProvider desiredChainId={ChainId.Mumbai}
+      supportedChains={[ChainId.Mumbai]}
+      chainRpc={{ [ChainId.Mumbai]: "https://rpc-mumbai.maticvigil.com/"}}
+      >
       <Component {...pageProps} />
     </ThirdwebProvider>
   );
