@@ -133,7 +133,8 @@ contract BaseballBoardGame is ERC721, ERC721URIStorage, ERC721Burnable, Reentran
     function onOut() private {
         outs += 1;
         if (outs >= 3) {
-            bases = 0; // clear all runners
+            bases = 0;  // clear all runners
+            outs = 0;   // reset outs
         }
     }
 
