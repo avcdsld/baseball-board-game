@@ -2,7 +2,7 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
 
-import { Button, ButtonGroup, Heading, HStack, Link, VStack, } from '@chakra-ui/react'
+import { Button, ButtonGroup, Heading, HStack, Input, Link, VStack, } from '@chakra-ui/react'
 import { ExternalLinkIcon } from '@chakra-ui/icons'
 import {
   Stat,
@@ -22,8 +22,6 @@ import { ethers } from 'ethers'
 
 const contractAddressMumbai = '0x2bC9E6A36a8B98B02Cc4C63E3863Bc7ac3d01429';
 
-const batterContractAddress = '0x2bC9E6A36a8B98B02Cc4C63E3863Bc7ac3d01429'
-
 type GameBoard = {
   totalScore: string,
   bases: number,
@@ -36,12 +34,13 @@ const Home: NextPage = () => {
   const address = useAddress()
   const signer = useSigner()
 
-  const [contractReady, setContractReady] = useState<boolean>(false)
   const [contract, setContract] = useState<ethers.Contract>()
   const [provider, setProvider] = useState<ethers.providers.BaseProvider>()
-
-  const [boardReady, setBoardReady] = useState<boolean>(false)
   const [board, setBoard] = useState<GameBoard>()
+
+  const [batterContract, setBatterContract] = useState<string>('')
+  const [batterTokenId, setBatterTokenId] = useState<string>('')
+  const [batterNftLink, setBatterNftLink] = useState<string>('')
 
   //  fetch game board
   useEffect(() => {
@@ -66,7 +65,6 @@ const Home: NextPage = () => {
       console.log('bases', bases)
       console.log('outs', outs)
       setContract(contract)
-      setContractReady(true)
       setBoard({
         totalScore: totalScore.toString(),
         outs: outs,
@@ -87,6 +85,17 @@ const Home: NextPage = () => {
     signer?.getBalance().then(x => console.log('signer:', x?.toString()))
   }, [signer])
 
+  useEffect(() => {
+    if(ethers.utils.isAddress(batterContract) && !isNaN(parseInt(batterTokenId))) {
+      console.log(batterContract, '/', batterTokenId)
+      const openseaLink = `https://testnets.opensea.io/assets/mumbai/${batterContract}/${batterTokenId}`
+      setBatterNftLink(openseaLink)
+    }else{
+      setBatterNftLink('')
+    }
+    
+  }, [batterContract, batterTokenId])
+
   const trigger = (address: string, tokenId: number) => {
     if(!contract) {
       return
@@ -106,6 +115,14 @@ const Home: NextPage = () => {
       return result
     }
     inner().then(x => console.log(x))
+  }
+
+  const onBatterContractAddressChange = (e: any) => {
+    setBatterContract(e.target.value)
+  }
+
+  const onBatterTokenIdChange = (e: any) => {
+    setBatterTokenId(e.target.value)
   }
 
   return (
@@ -140,16 +157,27 @@ const Home: NextPage = () => {
         {address ? (
           <Link href={`https://mumbai.polygonscan.com/address/${address}`} isExternal>
           {address} <ExternalLinkIcon mx='2px'/>
-        </Link>
+          </Link>
         ) : (<p>not connected</p>)}
-        <HStack margin={10}>
-          <Button onClick={() => trigger(batterContractAddress, 1)} colorScheme='blue' disabled={!address} variant='outline'>
+        {address ? (
+          <VStack>
+            <Input placeholder='Batter NFT Address' width={'auto'} onChange={onBatterContractAddressChange}/>
+            <Input placeholder='Batter NFT TokenId' width={'32md'} onChange={onBatterTokenIdChange}/>
+          </VStack>
+          ): (<div></div>)}
+        {batterNftLink != '' ? (<Link href={batterNftLink} isExternal>
+          Open in Opensea <ExternalLinkIcon mx='2px'/>
+          </Link>): (<div></div>)}
+        {batterNftLink != '' ? (
+          <HStack margin={10}>
+          <Button onClick={() => trigger(batterContract, parseInt(batterTokenId))} colorScheme='blue' variant='outline'>
             trigger
           </Button>
-          <Button onClick={() => reveal()} colorScheme='blue' disabled={!address} variant='outline'>
+          <Button onClick={() => reveal()} colorScheme='blue' variant='outline'>
             reveal
           </Button>
         </HStack>
+        ): <div></div>}
       </VStack>
   
       <footer className={styles.footer}>
