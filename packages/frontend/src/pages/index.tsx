@@ -1,6 +1,18 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
+
+import { Button, ButtonGroup, Heading, HStack, Link, VStack, } from '@chakra-ui/react'
+import { ExternalLinkIcon } from '@chakra-ui/icons'
+import {
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatHelpText,
+  StatArrow,
+  StatGroup,
+} from '@chakra-ui/react'
+
 import styles from '../styles/Home.module.css'
 import { useEffect, useState } from 'react'
 import abi from '../dapps/contracts/abi.json'
@@ -13,9 +25,9 @@ const contractAddressMumbai = '0x2bC9E6A36a8B98B02Cc4C63E3863Bc7ac3d01429';
 const batterContractAddress = '0x2bC9E6A36a8B98B02Cc4C63E3863Bc7ac3d01429'
 
 type GameBoard = {
-  totalScore: number,
+  totalScore: string,
   bases: number,
-  outs: number,
+  outs: string,
 }
 
 const Home: NextPage = () => {
@@ -29,7 +41,7 @@ const Home: NextPage = () => {
   const [provider, setProvider] = useState<ethers.providers.BaseProvider>()
 
   const [boardReady, setBoardReady] = useState<boolean>(false)
-  const [board, setBoard] = useState<GameBoard>({totalScore: 0, bases: 0, outs: 0})
+  const [board, setBoard] = useState<GameBoard>()
 
   //  fetch game board
   useEffect(() => {
@@ -42,6 +54,7 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     if(!signer) {
+      setBoard(undefined)
       return
     }
     const contract = new ethers.Contract(contractAddressMumbai, abi, signer);
@@ -54,13 +67,20 @@ const Home: NextPage = () => {
       console.log('outs', outs)
       setContract(contract)
       setContractReady(true)
+      setBoard({
+        totalScore: totalScore.toString(),
+        outs: outs,
+        bases: bases.toString(),
+      })
     }
     fetchCurrentGame()
   }, [signer])
 
   // fetch address data
   useEffect(() => {
-    console.log('address:', address)
+    if(address){
+      console.log('address:', address)
+    }
   }, [address])
 
   useEffect(() => {
@@ -96,11 +116,42 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <p>address: {address ?? 'not connected'}</p>
-      <button onClick={() => !address ? connectWithMetamask() : disconnect()}>{ !address ? "Connect Wallet" : "Disconnect"}</button>
-      <button onClick={() => trigger(batterContractAddress, 1)}>trigger</button>
-      <button onClick={() => reveal()}>reveal</button>
+      <VStack margin={32}>
+        <Heading>NFT Baseball</Heading>
+        <StatGroup>
+          <Stat margin={10}>
+            <StatLabel>Score</StatLabel>
+            <StatNumber>{board?.totalScore ?? '-'}</StatNumber>
+          </Stat>
 
+          <Stat margin={10}>
+            <StatLabel>Outs</StatLabel>
+            <StatNumber>{board?.outs ?? '-'}</StatNumber>
+          </Stat>
+
+          <Stat margin={10}>
+            <StatLabel>Runners</StatLabel>
+            <StatNumber>{toBaseString(board?.bases ?? 0)}</StatNumber>
+          </Stat>
+        </StatGroup>
+        <Button colorScheme='teal' onClick={() => !address ? connectWithMetamask() : disconnect()}>
+          { !address ? "Connect Wallet" : "Disconnect"}
+        </Button>
+        {address ? (
+          <Link href={`https://mumbai.polygonscan.com/address/${address}`} isExternal>
+          {address} <ExternalLinkIcon mx='2px'/>
+        </Link>
+        ) : (<p>not connected</p>)}
+        <HStack margin={10}>
+          <Button onClick={() => trigger(batterContractAddress, 1)} colorScheme='blue' disabled={!address} variant='outline'>
+            trigger
+          </Button>
+          <Button onClick={() => reveal()} colorScheme='blue' disabled={!address} variant='outline'>
+            reveal
+          </Button>
+        </HStack>
+      </VStack>
+  
       <footer className={styles.footer}>
         <a
           href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
@@ -115,6 +166,29 @@ const Home: NextPage = () => {
       </footer>
     </div>
   )
+}
+
+const toBaseString = (n: number): string => {
+  let baseString = ''
+  if ((n & 0x04) == 0x04) {
+    baseString += '-'
+  }else{
+    baseString += ' '
+  }
+
+  if ((n & 0x02) == 0x02) {
+    baseString += 'o\u0305'
+  }else{
+    baseString += 'o'
+  }
+
+  if ((n & 0x01) == 0x01) {
+    baseString += '-'
+  }else{
+    baseString += ' '
+  }
+
+  return baseString
 }
 
 export default Home
