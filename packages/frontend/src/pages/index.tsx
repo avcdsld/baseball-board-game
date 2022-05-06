@@ -41,6 +41,7 @@ const Home: NextPage = () => {
   const [batterContract, setBatterContract] = useState<string>('')
   const [batterTokenId, setBatterTokenId] = useState<string>('')
   const [batterNftLink, setBatterNftLink] = useState<string>('')
+  const [txid, setTxid] = useState<string>('')
 
   //  fetch game board
   useEffect(() => {
@@ -95,6 +96,25 @@ const Home: NextPage = () => {
     }
     
   }, [batterContract, batterTokenId])
+
+  TODO
+  useEffect(() => {
+    if(!signer || txid == '' || !provider) {
+      return
+    }
+    const poll = async () => {
+      for (let count = 0; count < 12; count++) {
+        const receipt = await provider.getTransactionReceipt(txid)
+        console.log(receipt)
+        if(receipt) {
+          
+        }
+        await new Promise(resolve => setTimeout(resolve, 5000))
+      }
+
+    }
+    poll()
+  }, [txid])
 
   const trigger = (address: string, tokenId: number) => {
     if(!contract) {
@@ -159,25 +179,21 @@ const Home: NextPage = () => {
           {address} <ExternalLinkIcon mx='2px'/>
           </Link>
         ) : (<p>not connected</p>)}
-        {address ? (
-          <VStack>
-            <Input placeholder='Batter NFT Address' width={'auto'} onChange={onBatterContractAddressChange}/>
-            <Input placeholder='Batter NFT TokenId' width={'32md'} onChange={onBatterTokenIdChange}/>
-          </VStack>
-          ): (<div></div>)}
+        <VStack>
+          <Input placeholder='Batter NFT Address' width={'auto'} onChange={onBatterContractAddressChange} disabled={!address}/>
+          <Input placeholder='Batter NFT TokenId' width={'32md'} onChange={onBatterTokenIdChange} disabled={!address}/>
+        </VStack>
         {batterNftLink != '' ? (<Link href={batterNftLink} isExternal>
           Open in Opensea <ExternalLinkIcon mx='2px'/>
           </Link>): (<div></div>)}
-        {batterNftLink != '' ? (
-          <HStack margin={10}>
-          <Button onClick={() => trigger(batterContract, parseInt(batterTokenId))} colorScheme='blue' variant='outline'>
+        <HStack margin={10}>
+          <Button onClick={() => trigger(batterContract, parseInt(batterTokenId))} colorScheme='blue' variant='outline' disabled={batterNftLink == ''}>
             trigger
           </Button>
-          <Button onClick={() => reveal()} colorScheme='blue' variant='outline'>
+          <Button onClick={() => reveal()} colorScheme='blue' variant='outline' disabled={batterNftLink == ''}>
             reveal
           </Button>
         </HStack>
-        ): <div></div>}
       </VStack>
     </div>
   )
