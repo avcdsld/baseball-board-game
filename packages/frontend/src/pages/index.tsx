@@ -2,8 +2,8 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
 
-import { Button, ButtonGroup, Heading, HStack, Input, Link, VStack, } from '@chakra-ui/react'
-import { ExternalLinkIcon } from '@chakra-ui/icons'
+import { Button, ButtonGroup, CircularProgress, Divider, Heading, HStack, Input, Link, VStack, } from '@chakra-ui/react'
+import { CheckCircleIcon, ExternalLinkIcon } from '@chakra-ui/icons'
 import {
   Stat,
   StatLabel,
@@ -50,6 +50,7 @@ const Home: NextPage = () => {
   const [batterNftLink, setBatterNftLink] = useState<string>('')
   const [txid, setTxid] = useState<string>('')
   const [receipt, setReceipt] = useState<ethers.providers.TransactionReceipt>()
+  const [result, setResult] = useState<ResultEvent>()
 
   //  fetch game board
   useEffect(() => {
@@ -87,7 +88,7 @@ const Home: NextPage = () => {
       })
     }
     fetchCurrentGame()
-  }, [signer])
+  }, [signer, result])
 
   // fetch address data
   useEffect(() => {
@@ -137,8 +138,10 @@ const Home: NextPage = () => {
       return
     }
     const data = Buffer.from(item.data.slice(2), 'hex')
+    const result = bufferToResult(data)
+    setResult(result)
     console.log(`data[${data.length}]:`, data)
-    console.log('result:', bufferToResult(data))
+    console.log('result:', result)
   }, [receipt])
 
   const trigger = (address: string, tokenId: number) => {
@@ -150,6 +153,8 @@ const Home: NextPage = () => {
       return result
     }
     inner().then(x => {
+      setReceipt(undefined)
+      setResult(undefined)
       setTxid(x.hash)
     })
   }
@@ -162,6 +167,8 @@ const Home: NextPage = () => {
       return result
     }
     inner().then(x => {
+      setReceipt(undefined)
+      setResult(undefined)
       setTxid(x.hash)
     })
   }
@@ -208,6 +215,7 @@ const Home: NextPage = () => {
           {address} <ExternalLinkIcon mx='2px'/>
           </Link>
         ) : (<p>not connected</p>)}
+        <Divider orientation='horizontal' />
         <VStack>
           <Input placeholder='Batter NFT Address' width={'auto'} onChange={onBatterContractAddressChange} disabled={!address}/>
           <Input placeholder='Batter NFT TokenId' width={'32md'} onChange={onBatterTokenIdChange} disabled={!address}/>
@@ -223,7 +231,23 @@ const Home: NextPage = () => {
             reveal
           </Button>
         </HStack>
-        <p>{txid}</p>
+        <Divider orientation='horizontal' />
+        {txid != '' ? 
+          <VStack>
+            <HStack>
+              {result ? (<CheckCircleIcon w={8} h={8} color="green.300" />):(<CircularProgress isIndeterminate color='blue.300' />)}
+              <Link href={`https://mumbai.polygonscan.com/tx/${txid}`} isExternal >
+              {txid} <ExternalLinkIcon mx='2px'/>
+              </Link>
+            </HStack> : <div></div>
+            {result ? (<VStack>
+              <p>{result.result} by {result.batter} and score {result.score}</p>
+            </VStack>) : <div></div>}
+          </VStack>
+          : <div></div>
+        }
+        
+        
         <div>
 
         </div>
