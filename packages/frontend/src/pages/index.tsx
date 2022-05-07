@@ -34,6 +34,7 @@ type ResultEvent = {
   batter: string,
   result: string,
   score: number,
+  noReveal: boolean,
 }
 
 const Home: NextPage = () => {
@@ -133,9 +134,14 @@ const Home: NextPage = () => {
   }, [txid])
 
   useEffect(() => {
+    if(!receipt) {
+      return
+    }
     console.log('receipt:', receipt)
-    const item = receipt?.logs.find(x => x.address == contractAddressMumbai)
+    const item = receipt.logs.find(x => x.address == contractAddressMumbai)
     if(!item) {
+      setResult(noRevealEvent())
+      console.log('nothing is revealed')
       return
     }
     const data = Buffer.from(item.data.slice(2), 'hex')
@@ -242,7 +248,7 @@ const Home: NextPage = () => {
               </Link>
             </HStack> : <div></div>
             {result ? (
-              <ResultComponent result={result.result} batter={result.batter} score={result.score}/>
+              <ResultComponent result={result.result} batter={result.batter} score={result.score} noReveal={result.noReveal}/>
             ) : <div></div>}
           </VStack>
           : <div></div>
@@ -288,6 +294,15 @@ const bufferToResult = (buf: Buffer): ResultEvent => {
     batter: address,
     result: result,
     score: score,
+    noReveal: false,
+  }
+}
+const noRevealEvent = (): ResultEvent => {
+  return {
+    batter: '',
+    result: '',
+    score: 0,
+    noReveal: true,
   }
 }
 

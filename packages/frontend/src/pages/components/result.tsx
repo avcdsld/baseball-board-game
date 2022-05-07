@@ -5,9 +5,13 @@ export const ResultComponent = (prop: {
     result: string,
     batter: string,
     score: number,
+    noReveal: boolean,
 }) => {
 
-    const {result, batter, score} = prop
+    const {result, batter, score, noReveal} = prop
+    if(noReveal) {
+        return (<Text fontWeight='bold'>Play being commited</Text>)
+    }
 
     let varient = 'outline'
     let colorScheme = 'blue'
