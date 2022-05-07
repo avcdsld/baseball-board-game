@@ -1,6 +1,6 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import Image from 'next/image'
+import { Image } from '@chakra-ui/react'
 
 import { Button, ButtonGroup, CircularProgress, Divider, Heading, HStack, Input, Link, VStack, } from '@chakra-ui/react'
 import { CheckCircleIcon, ExternalLinkIcon } from '@chakra-ui/icons'
@@ -218,7 +218,7 @@ const Home: NextPage = () => {
 
           <Stat margin={10}>
             <StatLabel>Runners</StatLabel>
-            <StatNumber>{toBaseString(board?.bases ?? 0)}</StatNumber>
+            <Image src={toBaseImgSrc(board?.bases ?? 0)} marginTop={2}/>
           </Stat>
         </StatGroup>
         <Button colorScheme='teal' onClick={() => !address ? connectWithMetamask() : disconnect()}>
@@ -270,27 +270,39 @@ const Home: NextPage = () => {
   )
 }
 
-const toBaseString = (n: number): string => {
-  let baseString = ''
-  if ((n & 0x04) == 0x04) {
-    baseString += '-'
-  }else{
-    baseString += ' '
+const toBaseImgSrc = (n: number): string => {
+  let baseMarks = '0'
+  switch (n & 0b0000_0111) {
+    case 0b0000_0001:
+      baseMarks = '1'
+      break;
+    case 0b0000_0010:
+      baseMarks = '2'
+      break;
+    case 0b0000_0100:
+      baseMarks = '3'
+      break;
+    case 0b0000_0100:
+      baseMarks = '3'
+      break;
+    case 0b0000_0011:
+      baseMarks = '12'
+      break;
+    case 0b0000_0101:
+      baseMarks = '13'
+      break;
+    case 0b0000_0110:
+      baseMarks = '23'
+      break;
+    case 0b0000_0111:
+      baseMarks = '123'
+      break;
+    default:
+      baseMarks = '0'
+      break;
   }
-
-  if ((n & 0x02) == 0x02) {
-    baseString += 'o\u0305'
-  }else{
-    baseString += 'o'
-  }
-
-  if ((n & 0x01) == 0x01) {
-    baseString += '-'
-  }else{
-    baseString += ' '
-  }
-
-  return baseString
+  const src = `/bases/bases.${baseMarks}.svg`
+  return src
 }
 
 const bufferToResult = (buf: Buffer): ResultEvent => {
