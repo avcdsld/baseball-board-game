@@ -29,6 +29,10 @@ type GameBoard = {
   outs: string,
 }
 
+type ResultEvent = {
+
+}
+
 const Home: NextPage = () => {
   const connectWithMetamask = useMetamask();
   const disconnect = useDisconnect()
@@ -43,6 +47,7 @@ const Home: NextPage = () => {
   const [batterTokenId, setBatterTokenId] = useState<string>('')
   const [batterNftLink, setBatterNftLink] = useState<string>('')
   const [txid, setTxid] = useState<string>('')
+  const [receipt, setReceipt] = useState<ethers.providers.TransactionReceipt>()
 
   //  fetch game board
   useEffect(() => {
@@ -104,24 +109,34 @@ const Home: NextPage = () => {
     
   }, [batterContract, batterTokenId])
 
-  // TODO
   useEffect(() => {
     if(!signer || txid == '' || !provider) {
       return
     }
     const poll = async () => {
       for (let count = 0; count < 15; count++) {
-        const receipt = await provider.getTransactionReceipt(txid)
-        console.log(receipt)
-        if(receipt) {
-          //return
+        const tmpReceipt = await provider.getTransactionReceipt(txid)
+        console.log(`receipt[${count}]:`, tmpReceipt)
+        if(tmpReceipt) {
+          setReceipt(tmpReceipt)
+          return
         }
         await new Promise(resolve => setTimeout(resolve, 5000))
       }
       console.log('finish polling')
     }
-    // poll()
+    poll()
   }, [txid])
+
+  useEffect(() => {
+    console.log('receipt:', receipt)
+    const item = receipt?.logs.find(x => x.address == contractAddressMumbai)
+    if(!item) {
+      return
+    }
+    const data = Buffer.from(item.data, 'hex')
+    console.log('data:', item.data)
+  }, [receipt])
 
   const trigger = (address: string, tokenId: number) => {
     if(!contract) {
@@ -131,7 +146,9 @@ const Home: NextPage = () => {
       const result = await contract.trigger(address, tokenId)
       return result
     }
-    inner().then(x => console.log(x))
+    inner().then(x => {
+      setTxid(x.hash)
+    })
   }
   const reveal = () => {
     if(!contract) {
@@ -141,7 +158,9 @@ const Home: NextPage = () => {
       const result = await contract.reveal()
       return result
     }
-    inner().then(x => console.log(x))
+    inner().then(x => {
+      setTxid(x.hash)
+    })
   }
 
   const onBatterContractAddressChange = (e: any) => {
@@ -201,6 +220,10 @@ const Home: NextPage = () => {
             reveal
           </Button>
         </HStack>
+        <p>{txid}</p>
+        <div>
+
+        </div>
       </VStack>
     </div>
   )
