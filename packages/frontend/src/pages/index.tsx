@@ -20,7 +20,7 @@ import abi from '../dapps/contracts/abi.json'
 import { useAddress, useDisconnect, useMetamask, useSigner } from "@thirdweb-dev/react";
 import { ethers } from 'ethers'
 import { useProvider } from '@thirdweb-dev/react/node_modules/wagmi'
-import { ResultComponent, ResultStatus } from './components/result'
+import { ResultComponent, ResultStatus } from '../components/result'
 
 const contractAddressMumbai = '0x2bC9E6A36a8B98B02Cc4C63E3863Bc7ac3d01429';
 
