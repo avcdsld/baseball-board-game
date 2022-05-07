@@ -30,7 +30,9 @@ type GameBoard = {
 }
 
 type ResultEvent = {
-
+  batter: string,
+  result: string,
+  score: number,
 }
 
 const Home: NextPage = () => {
@@ -134,8 +136,9 @@ const Home: NextPage = () => {
     if(!item) {
       return
     }
-    const data = Buffer.from(item.data, 'hex')
-    console.log('data:', item.data)
+    const data = Buffer.from(item.data.slice(2), 'hex')
+    console.log(`data[${data.length}]:`, data)
+    console.log('result:', bufferToResult(data))
   }, [receipt])
 
   const trigger = (address: string, tokenId: number) => {
@@ -250,6 +253,17 @@ const toBaseString = (n: number): string => {
   }
 
   return baseString
+}
+
+const bufferToResult = (buf: Buffer): ResultEvent => {
+  const address = '0x' + buf.slice(12, 32).toString('hex')
+  const score = buf.at(95) ?? 0
+  const result = buf.slice(224).toString('ascii').replaceAll('\x00', '')
+  return {
+    batter: address,
+    result: result,
+    score: score,
+  }
 }
 
 export default Home
