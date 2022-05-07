@@ -20,6 +20,7 @@ import abi from '../dapps/contracts/abi.json'
 import { useAddress, useDisconnect, useMetamask, useSigner } from "@thirdweb-dev/react";
 import { ethers } from 'ethers'
 import { useProvider } from '@thirdweb-dev/react/node_modules/wagmi'
+import { ResultComponent } from './components/result'
 
 const contractAddressMumbai = '0x2bC9E6A36a8B98B02Cc4C63E3863Bc7ac3d01429';
 
@@ -237,12 +238,12 @@ const Home: NextPage = () => {
             <HStack>
               {result ? (<CheckCircleIcon w={8} h={8} color="green.300" />):(<CircularProgress isIndeterminate color='blue.300' />)}
               <Link href={`https://mumbai.polygonscan.com/tx/${txid}`} isExternal >
-              {txid} <ExternalLinkIcon mx='2px'/>
+              {txid.slice(0, 16)}... <ExternalLinkIcon mx='2px'/>
               </Link>
             </HStack> : <div></div>
-            {result ? (<VStack>
-              <p>{result.result} by {result.batter} and score {result.score}</p>
-            </VStack>) : <div></div>}
+            {result ? (
+              <ResultComponent result={result.result} batter={result.batter} score={result.score}/>
+            ) : <div></div>}
           </VStack>
           : <div></div>
         }
