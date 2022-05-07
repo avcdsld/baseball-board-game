@@ -22,7 +22,7 @@ import { ethers } from 'ethers'
 import { useProvider } from '@thirdweb-dev/react/node_modules/wagmi'
 import { ResultComponent, ResultStatus } from '../components/result'
 
-const contractAddressMumbai = '0x2bC9E6A36a8B98B02Cc4C63E3863Bc7ac3d01429';
+const contractAddressMumbai = '0xD7E82F9Fb70dEDC0a15deA3c5cc1d1CADaA3b463';
 
 type GameBoard = {
   totalScore: string,
