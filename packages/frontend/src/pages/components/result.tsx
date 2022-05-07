@@ -1,16 +1,22 @@
 import { ExternalLinkIcon } from "@chakra-ui/icons"
 import { Badge, HStack, Link, VStack, Text } from "@chakra-ui/react"
 
+export type ResultStatus = 'revealed' | 'noReveal' | 'revert'
+
 export const ResultComponent = (prop: {
     result: string,
     batter: string,
     score: number,
-    noReveal: boolean,
+    status: ResultStatus,
 }) => {
 
-    const {result, batter, score, noReveal} = prop
-    if(noReveal) {
+    const {result, batter, score, status} = prop
+    if(status == 'noReveal') {
         return (<Text fontWeight='bold'>Play being commited</Text>)
+    }
+
+    if(status == 'revert') {
+        return (<Text fontWeight='bold'>Transaction Failed</Text>)
     }
 
     let varient = 'outline'

@@ -20,7 +20,7 @@ import abi from '../dapps/contracts/abi.json'
 import { useAddress, useDisconnect, useMetamask, useSigner } from "@thirdweb-dev/react";
 import { ethers } from 'ethers'
 import { useProvider } from '@thirdweb-dev/react/node_modules/wagmi'
-import { ResultComponent } from './components/result'
+import { ResultComponent, ResultStatus } from './components/result'
 
 const contractAddressMumbai = '0x2bC9E6A36a8B98B02Cc4C63E3863Bc7ac3d01429';
 
@@ -34,7 +34,7 @@ type ResultEvent = {
   batter: string,
   result: string,
   score: number,
-  noReveal: boolean,
+  status: ResultStatus,
 }
 
 const Home: NextPage = () => {
@@ -138,6 +138,13 @@ const Home: NextPage = () => {
       return
     }
     console.log('receipt:', receipt)
+
+    if(receipt.status == 0) {
+      setResult(failedEvent())
+      console.log('transaction is failed')
+      return
+    }
+
     const item = receipt.logs.find(x => x.address == contractAddressMumbai)
     if(!item) {
       setResult(noRevealEvent())
@@ -248,7 +255,7 @@ const Home: NextPage = () => {
               </Link>
             </HStack> : <div></div>
             {result ? (
-              <ResultComponent result={result.result} batter={result.batter} score={result.score} noReveal={result.noReveal}/>
+              <ResultComponent result={result.result} batter={result.batter} score={result.score} status={result.status}/>
             ) : <div></div>}
           </VStack>
           : <div></div>
@@ -294,7 +301,7 @@ const bufferToResult = (buf: Buffer): ResultEvent => {
     batter: address,
     result: result,
     score: score,
-    noReveal: false,
+    status: 'revealed',
   }
 }
 const noRevealEvent = (): ResultEvent => {
@@ -302,7 +309,15 @@ const noRevealEvent = (): ResultEvent => {
     batter: '',
     result: '',
     score: 0,
-    noReveal: true,
+    status: 'noReveal',
+  }
+}
+const failedEvent = (): ResultEvent => {
+  return {
+    batter: '',
+    result: '',
+    score: 0,
+    status: 'revert',
   }
 }
 
