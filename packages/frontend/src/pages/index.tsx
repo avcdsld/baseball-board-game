@@ -19,6 +19,7 @@ import abi from '../dapps/contracts/abi.json'
 
 import { useAddress, useDisconnect, useMetamask, useSigner } from "@thirdweb-dev/react";
 import { ethers } from 'ethers'
+import { useProvider } from '@thirdweb-dev/react/node_modules/wagmi'
 
 const contractAddressMumbai = '0x2bC9E6A36a8B98B02Cc4C63E3863Bc7ac3d01429';
 
@@ -35,7 +36,7 @@ const Home: NextPage = () => {
   const signer = useSigner()
 
   const [contract, setContract] = useState<ethers.Contract>()
-  const [provider, setProvider] = useState<ethers.providers.BaseProvider>()
+  const [provider, setProvider] = useState<ethers.providers.Provider>()
   const [board, setBoard] = useState<GameBoard>()
 
   const [batterContract, setBatterContract] = useState<string>('')
@@ -45,12 +46,18 @@ const Home: NextPage = () => {
 
   //  fetch game board
   useEffect(() => {
-    const p = ethers.getDefaultProvider('https://rpc-mumbai.maticvigil.com/')
-    setProvider(p)
-
+    if(!signer){
+      return
+    }
+    if(!signer.provider) {
+      console.log('no provider detected')
+      return
+    }
+    const p = signer.provider
     p.getNetwork().then(x => console.log('network', x.chainId))
     p.getBlockNumber().then(x => console.log('height', x.toString()))
-  },[])
+    setProvider(p)
+  },[signer])
 
   useEffect(() => {
     if(!signer) {
@@ -97,23 +104,23 @@ const Home: NextPage = () => {
     
   }, [batterContract, batterTokenId])
 
-  TODO
+  // TODO
   useEffect(() => {
     if(!signer || txid == '' || !provider) {
       return
     }
     const poll = async () => {
-      for (let count = 0; count < 12; count++) {
+      for (let count = 0; count < 15; count++) {
         const receipt = await provider.getTransactionReceipt(txid)
         console.log(receipt)
         if(receipt) {
-          
+          //return
         }
         await new Promise(resolve => setTimeout(resolve, 5000))
       }
-
+      console.log('finish polling')
     }
-    poll()
+    // poll()
   }, [txid])
 
   const trigger = (address: string, tokenId: number) => {

@@ -9,8 +9,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     <ChakraProvider>
       <ThirdwebProvider
         desiredChainId={ChainId.Mumbai}
-        supportedChains={[ChainId.Mumbai]}
-        chainRpc={{ [ChainId.Mumbai]: "https://rpc-mumbai.maticvigil.com/"}}>
+        supportedChains={[ChainId.Mumbai]}>
         <Component {...pageProps} />
       </ThirdwebProvider>
     </ChakraProvider>
